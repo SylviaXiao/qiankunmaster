@@ -1,0 +1,480 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>我的卡列表</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--<meta name="viewport"content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">-->
+  <link rel="stylesheet" type="text/css" href="css/cardList.css" />
+  <script src="js/vue.min.js"></script>
+  <script src="js/axios.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+  <div class="background-mask" v-if="step === 1 || step === 2"></div>
+  <div class="background" v-if="step === 1 || step === 2"></div>
+  <div class="form-wrap" v-if="openId && step === 1">
+    <div class="placeholder-element"></div>
+    <div class="logo"></div>
+    <div class="title">会员卡绑定</div>
+    <div class="row">
+      <input class="input phone" type="tel" v-model="form.phone" placeholder="请输入手机号进行绑定"/>
+    </div>
+    <div class="row">
+      <div class="button" @click="getSMSCode">获取验证码</div>
+    </div>
+    <div class="tip" v-if="!heightChange">会员卡仅允许绑定一次手机号码，绑定后仅本微信使用，无法变更，请悉知。</div>
+  </div>
+  <div class="form-wrap" v-if="openId && step === 2">
+    <div class="placeholder-element"></div>
+    <div class="msg-sms-code">输入验证码</div>
+    <div class="sub-msg-sms-code">已发送 6 位验证码至 {{form.phone}}</div>
+    <div class="sms-code-input-wrap">
+      <input ref="smsCodeInput1" class="sms-code-input" type="tel" v-model="form.smsCode1" @input="smsCodeInput($event, 1)"/>
+      <input ref="smsCodeInput2" class="sms-code-input" type="tel" v-model="form.smsCode2" @input="smsCodeInput($event, 2)"/>
+      <input ref="smsCodeInput3" class="sms-code-input" type="tel" v-model="form.smsCode3" @input="smsCodeInput($event, 3)"/>
+      <input ref="smsCodeInput4" class="sms-code-input" type="tel" v-model="form.smsCode4" @input="smsCodeInput($event, 4)"/>
+      <input ref="smsCodeInput5" class="sms-code-input" type="tel" v-model="form.smsCode5" @input="smsCodeInput($event, 5)"/>
+      <input ref="smsCodeInput6" class="sms-code-input" type="tel" v-model="form.smsCode6" @input="smsCodeInput($event, 6)"/>
+    </div>
+    <div class="row">
+      <div class="button" @click="bindPhone">绑定</div>
+    </div>
+    <div class="row">
+      <div class="refresh-sms-code" v-if="countDown && count > 0">
+        重新获取（{{count}}s）
+      </div>
+      <div class="refresh-sms-code" v-else @click="getSMSCode">重新获取验证码</div>
+    </div>
+  </div>
+  <div class="card-wrap" v-if="step === 3">
+    <div class="card-list">
+      <div v-for="(item, index) in cardList" :key="index">
+        <div class="user-info">
+          <div class="username">姓名：{{item.stuName}}</div>
+          <div class="phone">电话：{{item.stuPhone}}</div>
+        </div>
+        <div class="card" v-for="(card, cardIndex) in item.cardList" :key="cardIndex">
+          <div class="card-payoff" :style="card.payoff ? 'background: #1BA97B;' : 'background: #ff5857;'">{{card.payoff ? '已缴清' : '未缴清'}}</div>
+          <div class="card-no">卡号：{{card.stuCardNo}}（{{card.status | statusFilter}}）</div>
+          <div class="card-name">卡种：{{card.stuCardName}}</div>
+          <div class="card-branch">分馆：{{card.deptName}}</div>
+          <div class="card-validity">剩余有效期：{{card.day}}天</div>
+          <div class="card-button" v-if="card.payoff || card.status === 'C'" @click="checkQRCode(card)">查看二维码</div>
+        </div>
+      </div>
+      <div class="safe-area"></div>
+    </div>
+  </div>
+  <div class="card-info" :class="'card-info-' + type" v-if="step === 4">
+    <div class="back" @click="back"></div>
+    <div class="QRCode-wrap" v-if="QRCodeUrl">
+      <div :style="infoStyle" class="info">
+        <div class="text-wrap">
+          <div>姓名：{{userInfo.stuName}}</div>
+          <div>电话：{{userInfo.stuPhone}}</div>
+          <div>卡名：{{userInfo.stuCardName}}</div>
+          <div>总次数：{{userInfo.totalCount}}</div>
+          <div>分馆：{{userInfo.deptName}}</div>
+          <div>剩余有效期：{{userInfo.validDay}}天</div>
+        </div>
+        <div :style="avatarStyle" class="avatar-wrap">
+          <img class="avatar" v-if="userInfo.avatar" :src="userInfo.avatar">
+        </div>
+      </div>
+      <div :style="refreshStyle" class="qr-wrap">
+        <div class="qr-mask" v-if="refreshTime === 0" @click="refreshQRCode">点击刷新</div>
+        <img class="qr" :src="QRCodeUrl" @click="refreshQRCode">
+      </div>
+      <div v-if="isDynamic" class="tip" :style="tipStyle">
+        <span v-if="refreshCount === 0 && refreshTime > 0">有效时间：{{refreshTime}}s</span>
+        <span v-if="refreshCount > 0" style="color: #169BD5">已刷新</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const baseURL = 'https://erp.dansewudao.com/api'
+  // const baseURL = 'http://192.168.0.73:7080'
+  const APPID = 'wxdeb6b70c85d0585e'
+  //授权后重定向的回调链接地址
+  const REDIRECT_URI = 'https://erp.dansewudao.com/cardList.html'
+  // const REDIRECT_URI = 'http://dnt26a.natappfree.cc/cardList.html'
+  const SCOPE = 'snsapi_base'//应用授权作用域，snsapi_base，snsapi_userinfo
+
+  const app = new Vue({
+    el: '#app',
+    data: {
+      bodyHeight: 0, // 默认屏幕高度
+      showHeight: 0, // 实时屏幕高度
+      heightChange: false,
+      openId: '',
+      type: 'A', //A.单色 B.优鸽
+      step: 1,
+      form: {
+        phone: '',
+        smsCode1: '',
+        smsCode2: '',
+        smsCode3: '',
+        smsCode4: '',
+        smsCode5: '',
+        smsCode6: ''
+      },
+      countDown: false,
+      count: 60,
+      cardList: [],
+      isDynamic: true, //是否是动态二维码
+      studentId: '',
+      studentCardId: '',
+      QRCodeUrl: '',
+      refreshTime: 0,
+      refreshCount: 0,
+      interval1: null,
+      interval2: null,
+      userInfo: {},
+      infoStyle: {},
+      avatarStyle: {},
+      refreshStyle: {},
+      tipStyle: {}
+    },
+    computed: {
+      smsCode() {
+        return this.form.smsCode1 + this.form.smsCode2 + this.form.smsCode3
+          + this.form.smsCode4 + this.form.smsCode5 + this.form.smsCode6
+      }
+    },
+    filters: {
+      statusFilter(text) {
+        if (text === 'A') {
+          return '未使用'
+        } else if (text === 'B') {
+          return '使用中'
+        } else if (text === 'C') {
+          return '停课'
+        } else if (text === 'D') {
+          return '退卡'
+        } else if (text === 'E') {
+          return '结业'
+        } else if (text === 'F') {
+          return '撤销'
+        }
+      }
+    },
+    watch:{
+      showHeight() {
+        if (this.bodyHeight > this.showHeight) {
+          this.heightChange = true
+        } else {
+          this.heightChange = false
+        }
+      }
+    },
+    mounted() {
+      this.bodyHeight = document.body.clientHeight
+      this.showHeight = document.body.clientHeight
+      // window.onresize监听页面高度的变化
+      window.onresize = () => (() => {
+        this.showHeight = document.body.clientHeight
+      })()
+    },
+    created() {
+      // this.studentId = '39b32be8-3dc6-4290-9ed4-b7bd25e6554a'
+      // this.checkCardList()
+      this.wxGetOpenId()
+
+      this.$nextTick(() => {
+        const clientWidth = window.screen.width
+        const base = clientWidth / 375
+        this.infoStyle = {
+          top: (base * 84) + 'px',
+          padding: `0 ${(base * 36)}px`
+        }
+        this.avatarStyle = {
+          width: (base * 120) + 'px',
+          height: (base * 159) + 'px'
+        }
+        this.refreshStyle = {
+          top: (base * 290) + 'px',
+          left: (base * 70) + 'px',
+          width: (base * 238) + 'px',
+          height: (base * 238) + 'px'
+        }
+        this.tipStyle = {
+          top: (base * 535) + 'px'
+        }
+      })
+    },
+    methods: {
+      toast(msg, duration = 1500) {
+        let m = document.createElement('div')
+        m.innerHTML = msg
+        m.setAttribute('class', 'toast')
+        document.body.appendChild(m)
+        const timeout1 = setTimeout(() => {
+          let d = 0.5
+          m.style.opacity = '0'
+          clearTimeout(timeout1)
+          const timeout2 = setTimeout(() => {
+            document.body.removeChild(m)
+            clearTimeout(timeout2)
+          }, d * 1000)
+        }, duration)
+      },
+      confirm(message) {
+        let iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.setAttribute('src', 'data:text/plain,')
+        document.documentElement.appendChild(iframe)
+        let alertFrame = window.frames[0]
+        let result = alertFrame.window.confirm(message)
+        iframe.parentNode.removeChild(iframe)
+        return result
+      },
+      getUrlParam(url) {
+        const index = url.indexOf('?')
+        if (index != -1) {
+          let json = {}
+          const arr = url.substr(index + 1).split('&')
+          arr.forEach(item => {
+            const temp = item.split('=')
+            json[temp[0]] = temp[1]
+          })
+          return json
+        }
+        return {}
+      },
+      back() {
+        if (this.step === 3) {
+          this.cardList = []
+        }
+        if (this.step === 4) {
+          this.userInfo = {}
+          this.QRCodeUrl = ''
+          this.refreshTime = 0
+          if (this.interval1) clearInterval(this.interval1)
+          if (this.interval2) clearInterval(this.interval2)
+        }
+        if (this.step > 1) {
+          this.step--
+        }
+      },
+      wxGetOpenId() {
+        const param = this.getUrlParam(window.location.href)
+        if (param.code) {//获取code后，通过code去拿openid
+          axios({
+            baseURL,
+            url: '/common/qr/getGzhWeChatOpenId',
+            method: 'get',
+            params: {
+              code: param.code,
+              state: this.type
+            }
+          }).then(res => {
+            if (res.status == 200 && res.data.code == 200 && res.data.data) {
+              let data = JSON.parse(res.data.data)
+              this.openId = data.openid
+              this.wxGetUserInfo()
+            } else {
+              this.toast('openid获取失败')
+            }
+          })
+        } else {//跳转微信授权页获取code
+          const URL = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${APPID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}#wechat_redirect`
+          window.location.href = URL
+        }
+      },
+      //微信获取用户信息
+      wxGetUserInfo() {
+        axios({
+          baseURL,
+          url: '/common/qr/getStudentByOpenId',
+          method: 'get',
+          params: {
+            openId: this.openId,
+            state: this.type
+          }
+        }).then(res => {
+          if (res.data && res.data.data) {
+            this.studentId = res.data.data
+            this.checkCardList()
+          }
+        })
+      },
+      getSMSCode() {
+        const phoneReg = /^1[3456789]\d{9}$/
+        if (!this.form.phone) {
+          return this.toast('请输入手机号码')
+        }
+        if (this.form.phone && !phoneReg.test(this.form.phone)) {
+          return this.toast('请输入正确的手机号码')
+        }
+
+        if (this.countDown && this.count > 0) return
+
+        axios({
+          baseURL,
+          url: '/common/qr/studentCode',
+          method: 'get',
+          params: {
+            phone: this.form.phone,
+            state: this.type
+          }
+        }).then(res => {
+          if (res.status == 200 && res.data.code == 200) {
+            this.step = 2
+            this.countDown = true
+            this.count = 60
+            let interval = setInterval(() => {
+              if (this.count > 0) this.count--
+              if (this.count === 0) clearInterval(interval)
+            }, 1000)
+            this.toast('验证码发送成功')
+          } else {
+            this.toast('验证码发送失败')
+          }
+        })
+      },
+      smsCodeInput(e, index) {
+        let data = e.data
+        if (!data) data = e.currentTarget.value
+        if (data && data.length === 1) {
+          this.setSmsCodeInput(data, index)
+        } else if (data && data.length > 1) {
+          const array = data.split('')
+          array.forEach((value, index) => {
+            this.setSmsCodeInput(value, index + 1)
+          })
+        } else {
+          this.form['smsCode' + index] = ''
+          const input = this.$refs['smsCodeInput' + (index - 1)]
+          if (index > 1) {
+            input && input.focus()
+          }
+        }
+      },
+      setSmsCodeInput(value, index) {
+        this.form['smsCode' + index] = value
+        const input = this.$refs['smsCodeInput' + (index + 1)]
+        if (index < 6) {
+          input && input.focus()
+        }
+      },
+      bindPhone() {
+        const codeReg = /^\d{6}$/
+        if (!this.smsCode) {
+          return this.toast('请输入验证码')
+        }
+        if (this.smsCode && !codeReg.test(this.smsCode)) {
+          return this.toast('请输入正确的验证码')
+        }
+
+        axios({
+          baseURL,
+          url: '/common/qr/checkStuOpenId',
+          method: 'post',
+          params: {
+            openId: this.openId,
+            phone: this.form.phone,
+            type: 'A',
+            smsCode: this.smsCode,
+            state: this.type
+          }
+        }).then(res => {
+          if (res.status == 200 && res.data.code == 200) {
+            this.studentId = res.data.data
+            this.checkCardList()
+            this.toast('绑定成功')
+          } else {
+            this.toast('绑定失败')
+          }
+        })
+      },
+      checkCardList() {
+        this.step = 3
+        axios({
+          baseURL,
+          url: '/common/qr/listSignCard',
+          method: 'get',
+          params: {
+            studentId: this.studentId,
+            state: this.type
+          }
+        }).then(res => {
+          if (res.status == 200 && res.data.code == 200) {
+            this.cardList = res.data.data
+          } else {
+            this.cardList = []
+          }
+        })
+      },
+      checkQRCode(card) {
+        if (card.status === 'C') {
+          return this.toast('此卡为停卡状态，请去联系前台激活')
+        }
+        if (!card.payoff) {
+          return this.toast('此卡为未缴清状态，请及时缴清')
+        }
+        this.step = 4
+        this.studentCardId = card.studentCardId
+        this.isDynamic = card.qr
+        this.refreshQRCode()
+
+        axios({
+          baseURL,
+          url: '/common/qr/qrCodeInformation',
+          method: 'get',
+          params: {
+            studentCardId: card.studentCardId
+          }
+        }).then(res => {
+          if (res.status == 200 && res.data.code == 200) {
+            this.userInfo = {
+              type: res.data.data.type || 'A',
+              avatar: res.data.data.studentAvatar,
+              stuName: res.data.data.stuName || '',
+              stuPhone: res.data.data.stuPhone || '',
+              stuCardName: res.data.data.stuCardName || '',
+              totalCount: res.data.data.totalCount || '不限',
+              deptName: res.data.data.deptName || '',
+              validDay: res.data.data.validDay || '0'
+            }
+          } else {
+            this.userInfo = {}
+          }
+        })
+      },
+      refreshQRCode() {
+        if (this.refreshTime > 0) return
+        axios({
+          baseURL,
+          url: '/common/qr/genQRCode',
+          method: 'get',
+          params: {
+            studentCardId: this.studentCardId
+          }
+        }).then(res => {
+          if (res.status == 200 && res.data.code == 200) {
+            const data = res.data.data
+            this.refreshTime = ((new Date(data.time.replace(/-/g, '/')).getTime() - new Date().getTime()) / 1000).toFixed(0)
+            this.QRCodeUrl = data.image
+            const timeout = setTimeout(() => {
+              this.refreshCount = 3
+              clearTimeout(timeout)
+              this.interval1 = setInterval(() => {
+                this.refreshCount--
+                if (this.refreshCount === 0) clearInterval(this.interval1)
+              }, 1000)
+              this.interval2 = setInterval(() => {
+                this.refreshTime--
+                if (this.refreshTime === 0) clearInterval(this.interval2)
+              }, 1000)
+            }, 1)
+          }
+        })
+      }
+    }
+  })
+</script>
+</body>

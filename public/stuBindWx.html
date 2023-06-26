@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>扫描结果</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--<meta name="viewport"content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">-->
+  <link rel="stylesheet" type="text/css" href="css/stuBindWx.css"/>
+  <script src="js/vue.min.js"></script>
+  <script src="js/axios.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+  <div class="tip" v-if="showTip">
+    <div v-if="stuInfo.state === 'A'">该微信号已绑定学员信息，不可绑定多个</div>
+    <div v-if="stuInfo.state === 'B'">该学员已绑定其他微信，请先解除绑定</div>
+    <div class="close" @click="showTip = false"></div>
+  </div>
+  <div class="stu-info-mask" v-if="(stuInfo.state === 'A' || stuInfo.state === 'B') && showTip"></div>
+  <div class="stu-info" :class="'info-wrap-' + type">
+    <div class="info-wrap" :style="infoStyle">
+      <div class="text-wrap">
+        <div>姓名：{{stuInfo.stuName}}</div>
+        <div>电话：{{stuInfo.stuPhone}}</div>
+        <div>顾问：{{stuInfo.orgUserName}}</div>
+      </div>
+      <div :style="avatarStyle" class="avatar-wrap">
+        <img class="avatar" v-if="stuInfo.studentAvatar" :src="stuInfo.studentAvatar">
+      </div>
+    </div>
+    <div class="button" :style="buttonStyle" @click="bindWX" v-if="stuInfo.state === 'C'">确认绑定</div>
+    <div class="button disabled" :style="buttonStyle" v-if="stuInfo.state === 'D'">已绑定</div>
+  </div>
+</div>
+<script>
+  const baseURL = 'https://erp.dansewudao.com/api'
+  // const baseURL = 'http://192.168.0.73:7080'
+  const DS_APPID = 'wxdeb6b70c85d0585e'
+  const YG_APPID = 'wx3c8e7eb341ba2a1d'
+  //授权后重定向的回调链接地址
+  const REDIRECT_URI = 'https://erp.dansewudao.com/stuBindWx.html'
+  // const REDIRECT_URI = 'http://sk657g.natappfree.cc/stuBindWx.html'
+  const SCOPE = 'snsapi_base'//应用授权作用域，snsapi_base，snsapi_userinfo
+
+  const app = new Vue({
+    el: '#app',
+    data: {
+      openId: '',
+      showTip: false,
+      type: 'A', //A.单色 B.优鸽
+      studentId: '',
+      stuInfo: {},
+      infoStyle: {},
+      avatarStyle: {},
+      buttonStyle: {}
+    },
+    created() {
+      this.getOpenId()
+
+      this.$nextTick(() => {
+        const clientWidth = window.screen.width
+        const base = clientWidth / 375
+        this.infoStyle = {
+          top: (base * 84) + 'px',
+          padding: `0 ${(base * 36)}px`
+        }
+        this.avatarStyle = {
+          width: (base * 120) + 'px',
+          height: (base * 159) + 'px'
+        }
+        this.buttonStyle = {
+          top: (base * 480) + 'px'
+        }
+      })
+    },
+    methods: {
+      toast(msg, duration = 1500) {
+        let m = document.createElement('div')
+        m.innerHTML = msg
+        m.setAttribute('class', 'toast')
+        document.body.appendChild(m)
+        const timeout1 = setTimeout(() => {
+          let d = 0.5
+          m.style.opacity = '0'
+          clearTimeout(timeout1)
+          const timeout2 = setTimeout(() => {
+            document.body.removeChild(m)
+            clearTimeout(timeout2)
+          }, d * 1000)
+        }, duration)
+      },
+      confirm(message) {
+        let iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.setAttribute('src', 'data:text/plain,')
+        document.documentElement.appendChild(iframe)
+        let alertFrame = window.frames[0]
+        let result = alertFrame.window.confirm(message)
+        iframe.parentNode.removeChild(iframe)
+        return result
+      },
+      getUrlParam(url) {
+        const index = url.indexOf('?')
+        if (index != -1) {
+          let json = {}
+          const arr = url.substr(index + 1).split('&')
+          arr.forEach(item => {
+            const temp = item.split('=')
+            json[temp[0]] = temp[1]
+          })
+          return json
+        }
+        return {}
+      },
+      getOpenId() {
+        const param = this.getUrlParam(window.location.href)
+        const [studentId, type] = param.state ? decodeURIComponent(param.state).split(',') : ''
+        this.type = type || 'A'
+        this.studentId = studentId || ''
+        if (param.code) {//获取code后，通过code去拿openid
+          axios({
+            baseURL,
+            url: '/common/qr/getGzhWeChatOpenId',
+            method: 'get',
+            params: {
+              code: param.code,
+              state: type
+            }
+          }).then(res => {
+            if (res.status == 200 && res.data.code == 200 && res.data.data) {
+              let data = JSON.parse(res.data.data)
+              this.openId = data.openid
+              this.getBindStatus()
+            } else {
+              this.toast('openid获取失败')
+            }
+          })
+        } else {//跳转微信授权页获取code
+          const URL = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${this.type === 'B' ? YG_APPID : DS_APPID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPE}&state=${this.studentId},${this.type}#wechat_redirect`
+          window.location.href = URL
+        }
+      },
+      getBindStatus() {
+        const { openId, studentId, type } = this
+        axios({
+          baseURL,
+          url: '/common/student/state',
+          method: 'get',
+          params: {
+            openId,
+            studentId,
+            state: type
+          }
+        }).then(res => {
+          if (res.data && res.data.data) {
+            this.stuInfo = res.data.data
+            this.showTip = this.stuInfo.state === 'A' || this.stuInfo.state === 'B'
+          }
+        })
+      },
+      bindWX() {
+        const { openId, studentId, type } = this
+        axios({
+          baseURL,
+          url: '/common/student/saveOpenId',
+          method: 'get',
+          params: {
+            openId,
+            studentId,
+            state: type
+          }
+        }).then(res => {
+          const data = res.data || {}
+          if (data.code == 200) {
+            this.getBindStatus()
+            this.toast('绑定成功')
+          } else {
+            this.toast(data.msg || '绑定失败')
+          }
+        })
+      }
+    }
+  })
+</script>
+</body>

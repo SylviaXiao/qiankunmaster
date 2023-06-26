@@ -1,0 +1,402 @@
+@charset "UTF-8";
+@keyframes infiniteRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.slide21-down-enter, .slide21-down-leave-to {
+  transform: translate3d(0, -50px, 0);
+  opacity: 0;
+}
+.slide21-down-enter-to, .slide21-down-leave{
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+.slide21-down-enter-active,.slide21-down-leave-active {
+  transition: all 0.3s ease;
+}
+
+
+/************ 页面过度动画  ***************/
+.slide-right-enter-active,
+.slide-right-leave-active,
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-bottom-enter-active,
+.slide-bottom-leave-active {
+  will-change: transform;
+  transition: all 300ms;
+}
+
+.slide-right-enter {
+  opacity: 0;
+  transform: translate3d(-100%, 0, 0);
+}
+
+.slide-right-leave-to {
+  opacity: 0;
+}
+
+.slide-left-enter {
+  opacity: 0;
+  transform: translate3d(100%, 0, 0);
+}
+
+.slide-left-leave-to {
+  opacity: 0;
+}
+
+.slide-bottom-enter, .slide-bottom-leave-to {
+  transform: translateY(100%);
+}
+
+.slide-bottom-leaver, .slide-bottom-enter-to {
+  transform: translateY(0);
+}
+
+/*   砍价进图条东湖   */
+@keyframes progress-move {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/*  倒计时动画  */
+@keyframes dateDrop {
+  from {
+    opacity: 1;
+    transform: translateY(0) rotateZ(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%) rotateZ(20deg);
+  }
+}
+
+/* 淡入淡出 */
+.fade-enter-to, .fade-leave {
+  opacity: 1;
+}
+
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: all linear 0.3s;
+}
+
+/* 弹框动画 */
+.bouceIn-enter-to, .bouceIn-leave {
+  transform: scale(1);
+}
+
+.bouceIn-enter, .bouceIn-leave-to {
+  transform: scale(0);
+}
+
+.bouceIn-enter-active, .bouceIn-leave-active {
+  transition: all cubic-bezier(0.04, 0.73, 0.38, 1.17) 0.3s;
+}
+
+/* 列表显示动画 */
+.address-list-enter {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.address-list-enter-to {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.address-list-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.address-list-leave {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.address-list-leave-active {
+  transition: all ease 0.2s;
+}
+
+/* 右左偏移 */
+.list-toRight-enter {
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+.list-toRight-enter-to，.list-toRight-leave {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.list-toRight-leave-to {
+  opacity: 0;
+  transform: translateX(50%);
+}
+
+/* 向做偏移 */
+.list-toLeft-enter {
+  opacity: 0;
+  transform: translateX(50%);
+}
+
+.list-toLeft-enter-to, .list-toLeft-leave {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.list-toLeft-leave-to {
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+/* 淡入 */
+.list-fade-enter {
+  opacity: 0;
+}
+
+.list-fade-enter-to, .list-fade-leave {
+  opacity: 1;
+}
+
+.list-fade-leave-to {
+  opacity: 0;
+}
+
+.address-list-enter-active:nth-child(n + 1) {
+  transition: all ease 0.25s;
+}
+
+.list-toRight-enter-active:nth-child(n + 1) {
+  transition: all ease 0.25s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 1) {
+  transition: all ease 0.25s;
+}
+
+.list-fade-enter-active:nth-child(n + 1) {
+  transition: all ease 0.25s;
+}
+
+.address-list-enter-active:nth-child(n + 2) {
+  transition: all ease 0.3s;
+}
+
+.list-toRight-enter-active:nth-child(n + 2) {
+  transition: all ease 0.3s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 2) {
+  transition: all ease 0.3s;
+}
+
+.list-fade-enter-active:nth-child(n + 2) {
+  transition: all ease 0.3s;
+}
+
+.address-list-enter-active:nth-child(n + 3) {
+  transition: all ease 0.35s;
+}
+
+.list-toRight-enter-active:nth-child(n + 3) {
+  transition: all ease 0.35s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 3) {
+  transition: all ease 0.35s;
+}
+
+.list-fade-enter-active:nth-child(n + 3) {
+  transition: all ease 0.35s;
+}
+
+.address-list-enter-active:nth-child(n + 4) {
+  transition: all ease 0.4s;
+}
+
+.list-toRight-enter-active:nth-child(n + 4) {
+  transition: all ease 0.4s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 4) {
+  transition: all ease 0.4s;
+}
+
+.list-fade-enter-active:nth-child(n + 4) {
+  transition: all ease 0.4s;
+}
+
+.address-list-enter-active:nth-child(n + 5) {
+  transition: all ease 0.45s;
+}
+
+.list-toRight-enter-active:nth-child(n + 5) {
+  transition: all ease 0.45s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 5) {
+  transition: all ease 0.45s;
+}
+
+.list-fade-enter-active:nth-child(n + 5) {
+  transition: all ease 0.45s;
+}
+
+.address-list-enter-active:nth-child(n + 6) {
+  transition: all ease 0.5s;
+}
+
+.list-toRight-enter-active:nth-child(n + 6) {
+  transition: all ease 0.5s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 6) {
+  transition: all ease 0.5s;
+}
+
+.list-fade-enter-active:nth-child(n + 6) {
+  transition: all ease 0.5s;
+}
+
+.address-list-enter-active:nth-child(n + 7) {
+  transition: all ease 0.55s;
+}
+
+.list-toRight-enter-active:nth-child(n + 7) {
+  transition: all ease 0.55s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 7) {
+  transition: all ease 0.55s;
+}
+
+.list-fade-enter-active:nth-child(n + 7) {
+  transition: all ease 0.55s;
+}
+
+.address-list-enter-active:nth-child(n + 8) {
+  transition: all ease 0.6s;
+}
+
+.list-toRight-enter-active:nth-child(n + 8) {
+  transition: all ease 0.6s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 8) {
+  transition: all ease 0.6s;
+}
+
+.list-fade-enter-active:nth-child(n + 8) {
+  transition: all ease 0.6s;
+}
+
+.address-list-enter-active:nth-child(n + 9) {
+  transition: all ease 0.65s;
+}
+
+.list-toRight-enter-active:nth-child(n + 9) {
+  transition: all ease 0.65s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 9) {
+  transition: all ease 0.65s;
+}
+
+.list-fade-enter-active:nth-child(n + 9) {
+  transition: all ease 0.65s;
+}
+
+.address-list-enter-active:nth-child(n + 10) {
+  transition: all ease 0.7s;
+}
+
+.list-toRight-enter-active:nth-child(n + 10) {
+  transition: all ease 0.7s;
+}
+
+.list-toLeft-enter-active:nth-child(n + 10) {
+  transition: all ease 0.7s;
+}
+
+.list-fade-enter-active:nth-child(n + 10) {
+  transition: all ease 0.7s;
+}
+
+.list-fade-enter-active:nth-child(n + 1) {
+  transition: all ease 0.8s;
+}
+
+.list-fade-enter-active:nth-child(n + 2) {
+  transition: all ease 0.9s;
+}
+
+.list-fade-enter-active:nth-child(n + 3) {
+  transition: all ease 0.85s;
+}
+
+.list-fade-enter-active:nth-child(n + 4) {
+  transition: all ease 0.9s;
+}
+
+.list-fade-enter-active:nth-child(n + 5) {
+  transition: all ease 0.95s;
+}
+
+.list-fade-enter-active:nth-child(n + 6) {
+  transition: all ease 1s;
+}
+
+.list-fade-enter-active:nth-child(n + 7) {
+  transition: all ease 1.05s;
+}
+
+.list-fade-enter-active:nth-child(n + 8) {
+  transition: all ease 1.1s;
+}
+
+.list-fade-enter-active:nth-child(n + 9) {
+  transition: all ease 1.15s;
+}
+
+.list-fade-enter-active:nth-child(n + 10) {
+  transition: all ease 1.2s;
+}
+
+/* 组件左右切换动画 */
+.toRight-enter, .toRight-leave-to {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.toRight-enter-to, .toRight-leave {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toRight-leave-active, .toRight-enter-active {
+  transition: all linear 0.2s;
+}
+
+.toLeft-enter, .toLeft-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toLeft-enter-to, .toLeft-leave {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toLeft-leave-active, .toLeft-enter-active {
+  transition: all linear 0.2s;
+}

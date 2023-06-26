@@ -1,0 +1,268 @@
+@import 'standard.less';
+
+// 自身元素居中
+.absCenter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+}
+
+// 横轴排列,内部元素居中
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// 横轴排列,内部元素左中对齐
+.left {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+// 横轴排列,内部元素中上对齐
+.top {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+// 横轴排列,内部元素中右对齐
+.right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+// 纵轴排列,内部元素中上对齐
+.columnTop {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+// 纵轴排列,内部元素中左对齐
+.columnLeft {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+// 纵轴排列,内部元素居中对齐
+.columnCenter {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+// 文字超出的部分用省略号显示,1行
+.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+// 文字超出的部分用省略号显示,可动态选择显示几行
+.ellipsis2(@line) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: @line;
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+}
+
+// 在form中的假星
+.required {
+  .ant-form-item-label {
+    label::before {
+      display: inline-block;
+      margin-right: 4px;
+      content: '*';
+      font-family: SimSun;
+      line-height: 1;
+      font-size: 14px;
+      color: #f5222d;
+    }
+  }
+}
+// 在pan的前面加的假星
+.required-class {
+  margin-right: 6px;
+  position: absolute;
+  left: -77px;
+  top: 5px;
+  &:before {
+    display: inline-block;
+    margin-right: 4px;
+    content: '*';
+    font-family: SimSun;
+    line-height: 1;
+    font-size: 14px;
+    color: #f5222d;
+  }
+}
+
+.mb10 {
+  margin-bottom: 10px;
+}
+.mb20 {
+  margin-bottom: 20px;
+}
+.mb30 {
+  margin-bottom: 30px;
+}
+.mb40 {
+  margin-bottom: 40px;
+}
+.mt10 {
+  margin-top: 10px;
+}
+.mt20 {
+  margin-top: 20px;
+}
+.mt30 {
+  margin-top: 30px;
+}
+.mt40 {
+  margin-top: 40px;
+}
+.mr10 {
+  margin-right: 10px;
+}
+.mr20 {
+  margin-right: 20px;
+}
+.mr30 {
+  margin-right: 30px;
+}
+.mr40 {
+  margin-right: 40px;
+}
+.ml10 {
+  margin-left: 10px;
+}
+.ml20 {
+  margin-left: 20px;
+}
+.ml30 {
+  margin-left: 30px;
+}
+.ml40 {
+  margin-left: 40px;
+}
+.pd10 {
+  padding: 10px;
+}
+.pd20 {
+  padding: 20px;
+}
+.flex {
+  display: flex;
+  align-items: center;
+}
+.aButton {
+  cursor: pointer;
+  color: @theme-colorNew;
+}
+.hButton {
+  height: 28px;
+}
+.gButton {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px !important;
+  color: #7d7d7d;
+}
+.disButton {
+  cursor: pointer;
+  color: @theme-disable;
+}
+.activeColor {
+  color: @theme-color;
+}
+.ant-btn {
+  padding: 0 20px !important;
+  //border-radius: 8px !important;
+}
+//全局表单颜样式
+.ant-tabs-nav .ant-tabs-tab {
+  font-family: Source Han Sans CN;
+  font-weight: 500;
+  color: #535353;
+}
+.ant-tabs-nav .ant-tabs-tab {
+  color: #535353;
+  font-weight: 500;
+}
+.ant-tabs-nav .ant-tabs-tab-active {
+  color: #19a97b;
+}
+.ant-table-thead > tr > th {
+  color: #535353;
+}
+.ant-table-tbody > tr > td {
+  color: #646566;
+  font-weight: 400;
+}
+.tags_1 {
+  padding: 4px 13px;
+  border: 1px solid #bfbfbf;
+  border-radius: 16px;
+  font-size: 12px;
+  font-family: Source Han Sans CN;
+  font-weight: 500;
+  color: #7d7d7d;
+}
+.ant-table .light {
+  background-color: white;
+}
+.ant-table .dark {
+  background-color: #f7fbff;
+}
+.ant-table-tbody > tr:hover:not(.ant-table-expanded-row):not(.ant-table-row-selected) > td {
+  background-color: #e5e5e5 !important;
+}
+.checkBox_new {
+  .ant-checkbox-wrapper {
+    color: #7d7d7d;
+  }
+}
+.ant-checkbox-inner {
+  border: 0.01rem solid #b5b5b5;
+}
+.ant-checkbox-wrapper {
+  color: #b5b5b5;
+}
+//.ant-table-thead > tr.ant-table-row-hover > td,
+//.ant-table-tbody > tr.ant-table-row-hover > td,
+//.ant-table-thead > tr:hover > td,
+//.ant-table-tbody > tr:hover > td {
+//  background: transparent !important;
+//}
+.ant-slider-step {
+  background: rgb(193, 193, 193) !important;
+}
+.ant-slider-track {
+  background-color: #909090 !important;
+  // background-color: #1ba97b !important;
+  z-index: 1 !important;
+  height: 10px !important;
+  top: 0px;
+}
+.ant-slider {
+  padding: 0;
+}
+.ant-slider-handle {
+  z-index: 2 !important;
+  width: 30px !important;
+  height: 30px !important;
+  margin-top: -14px !important;
+}

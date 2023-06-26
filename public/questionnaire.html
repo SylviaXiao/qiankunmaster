@@ -1,0 +1,508 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>教练班学员满意度问卷</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+  <!--<meta name="viewport"content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">-->
+  <link rel="stylesheet" type="text/css" href="css/questionnaire.css"/>
+  <link rel="stylesheet" type="text/css" href="css/iconfont/iconfont.css"/>
+  <script src="js/vue.min.js"></script>
+  <script src="js/axios.min.js"></script>
+</head>
+
+<body>
+<div id="app">
+  <div class="empty" v-if="emptyText">
+    <div class="iconfont icon-kong"></div>
+    <div class="empty-text">{{emptyText}}</div>
+  </div>
+  <div class="wrapper" v-else>
+    <div class="header-title">教练班学员满意度问卷</div>
+    <div class="header-sub-title">亲爱的学员宝宝，你的意见和建议对单色的服务、教学提升有至关重要的作用，当然你可以选择实名或匿名填写，如果你想得到意见反馈请留下你的联系方式，我们保证你的信息绝不外泄</div>
+    <div class="row">
+      <div class="label required">学员姓名</div>
+      <div class="value">
+        <input type="text" v-model="form.studentName" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label">联系方式（选填）</div>
+      <div class="value">
+        <input type="text" v-model="form.studentPhone" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">老师姓名</div>
+      <div class="value">
+        <input type="text" v-model="form.teacherName" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">班级辅导员</div>
+      <div class="value">
+        <input type="text" v-model="form.instructor" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">教研组负责人</div>
+      <div class="value">
+        <input type="text" v-model="form.principal" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">上课分馆</div>
+      <div class="value">
+        <select v-model="form.deptId">
+          <option v-for="item in deptList" :key="item.id" :value="item.id">{{item.deptName}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">所学课程</div>
+      <div class="value">
+        <select v-model="form.danceId">
+          <option v-for="item in danceList" :key="item.id" :value="item.id">{{item.name}}</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">教练班期数（例：第X期，如不清楚，请与你的班级辅导员或老师确认）</div>
+      <div class="value">
+        <input type="text" v-model="form.periods" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">开班日期</div>
+      <div class="value">
+        <input type="date" v-model="form.startDate" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">结业日期</div>
+      <div class="value">
+        <input type="date" v-model="form.endDate" placeholder="请输入" />
+      </div>
+    </div>
+    <div class="tip">以下为学员给予老师评分的八个问题，请根据实际情况客观评分哦！</div>
+    <div class="row" v-for="(item, index) in scoreList" :key="index">
+      <div class="label required">{{index + 1}}.{{item.title}}（{{item.score}}分）</div>
+      <div class="value">
+        <div class="score-box">
+          <div
+            v-for="score in item.score" :key="score"
+            class="score"
+            :class="{active: form['score' + (index + 1)] === score}"
+            @click="form['score' + (index + 1)] = score"
+          >
+            {{score}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">9.请列出以上打分项扣分的具体原因？</div>
+      <div class="value">
+        <textarea v-model="form.deductMarksCause" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">10.学习教练班的目的是？（可多选）</div>
+      <div class="value">
+        <div class="checkbox" v-for="(item, index) in learningPurposeList" :key="index" @click="learningPurposeClick(item)">
+          <input type="checkbox" :checked="form.learningGoals.includes(item.value)" />{{item.label}}
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">11.您选择单色之前还考虑过哪些其他的机构？</div>
+      <div class="value">
+        <textarea v-model="form.otherInstitutions" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">12.为什么对比之后还是选择来单色学习？</div>
+      <div class="value">
+        <textarea v-model="form.chooseDanseCause" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">13.您有多大可能性推荐您的朋友来学习？</div>
+      <div class="value">
+        <div class="score-box">
+          <div
+            v-for="score in 10" :key="score"
+            class="score"
+            :class="{active: form.possibility === score}"
+            @click="form.possibility = score"
+          >
+            {{score}}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">14.您是否愿意推广单色给您的朋友，理由是什么？</div>
+      <div class="value">
+        <select v-model="form.isWilling" style="margin-bottom: 10px">
+          <option :value="true">是</option>
+          <option :value="false">否</option>
+        </select>
+        <textarea v-model="form.reason" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">15.店面服务模块，你想说的话？</div>
+      <div class="value">
+        <textarea v-model="form.serviceModule" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">16.教学体验模块，你想说的话？</div>
+      <div class="value">
+        <textarea v-model="form.experienceModule" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="label required">17.你对单色有什么样的期待？</div>
+      <div class="value">
+        <textarea v-model="form.expectation" placeholder="请输入"></textarea>
+      </div>
+    </div>
+    <div class="submit" :class="{loading: loading}" @click="submit">感谢您的建议  请提交</div>
+  </div>
+</div>
+<script>
+  // TODO: 多页面
+  const baseURL = 'https://erp.dansewudao.com/api'
+  // const baseURL = 'http://192.168.0.178:8080' // TEST
+  const DS_APPID = 'wxdeb6b70c85d0585e' // 后台无测试APPID
+  // const DS_APPID = 'wx0d1b5ca2fbb2ae4c' // TEST
+  const YG_APPID = 'wx3c8e7eb341ba2a1d'
+  //授权后重定向的回调链接地址
+  const REDIRECT_URI = 'https://erp.dansewudao.com/questionnaire.html'
+  // const REDIRECT_URI = (window.location.href).split('?')[0]
+  const SCOPE = 'snsapi_base'//应用授权作用域，snsapi_base，snsapi_userinfo
+
+  const app = new Vue({
+    el: '#app',
+    data: {
+      openId: '',
+      emptyText: null,
+      loading: false,
+      deptList: [],
+      danceList: [],
+      scoreList: [
+        { title: '老师的教学内容是否与教案一致？', score: 20 },
+        { title: '老师的教学方法是否能够让你有效吸收所有教学内容？', score: 10 },
+        { title: '课后学员手册是否认真批改、回馈及时？', score: 10 },
+        { title: '老师在课前、课中、课后的教学态度、沟通方式是否让你满意？', score: 10 },
+        { title: '你对自己的学习成果是否满意？', score: 20 },
+        { title: '老师在教学过程中是否存在迟到、早退、旷工、怠工（比如频繁看手机、接听电话、课上用餐、课上教学偷懒）现象？(满分10分，分值最大则代表无此现象）？', score: 10 },
+        { title: '老师的服装、妆容是否符合舞种需求？', score: 10 },
+        { title: '老师是否对你的“舞”业生涯做合理规划及建议？', score: 10 },
+      ],
+      learningPurposeList: [
+        { label: '做舞蹈老师', value: '做舞蹈老师' },
+        { label: '开舞蹈机构', value: '开舞蹈机构' },
+        { label: '做舞者/舞蹈演员', value: '做舞者/舞蹈演员' },
+        { label: '艺考进修', value: '艺考进修' },
+        { label: '提升舞蹈技能', value: '提升舞蹈技能' },
+        { label: '改善协调能力', value: '改善协调能力' },
+        { label: '舒缓压力', value: '舒缓压力' },
+        { label: '锻炼身体', value: '锻炼身体' },
+        { label: '减脂塑形', value: '减脂塑形' },
+        { label: '培养舞者气质，增加自信', value: '培养舞者气质，增加自信' },
+        { label: '多一项才艺', value: '多一项才艺' },
+        { label: '其他', value: '其他' },
+      ],
+      form: {
+        classId: '',
+        studentName: '',
+        studentPhone: '',
+        teacherName: '',
+        instructor: '',
+        principal: '',
+        deptId: '',
+        danceId: '',
+        periods: '',
+        startDate: '',
+        endDate: '',
+        score1: 0,
+        score2: 0,
+        score3: 0,
+        score4: 0,
+        score5: 0,
+        score6: 0,
+        score7: 0,
+        score8: 0,
+        deductMarksCause: '',
+        learningGoals: [],
+        otherInstitutions: '',
+        chooseDanseCause: '',
+        possibility: 0,
+        isWilling: null,
+        reason: '',
+        serviceModule: '',
+        experienceModule: '',
+        expectation: ''
+      }
+    },
+    created() {
+      this.getOpenId()
+      this.getOptions()
+    },
+    methods: {
+      toast(msg, duration = 1500) {
+        let m = document.createElement('div')
+        m.innerHTML = msg
+        m.setAttribute('class', 'toast')
+        document.body.appendChild(m)
+        const timeout1 = setTimeout(() => {
+          let d = 0.5
+          m.style.opacity = '0'
+          clearTimeout(timeout1)
+          const timeout2 = setTimeout(() => {
+            document.body.removeChild(m)
+            clearTimeout(timeout2)
+          }, d * 1000)
+        }, duration)
+      },
+      confirm(message) {
+        let iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.setAttribute('src', 'data:text/plain,')
+        document.documentElement.appendChild(iframe)
+        let alertFrame = window.frames[0]
+        let result = alertFrame.window.confirm(message)
+        iframe.parentNode.removeChild(iframe)
+        return result
+      },
+      getUrlParam(url) {
+        const index = url.indexOf('?')
+        if (index != -1) {
+          let json = {}
+          const arr = url.substr(index + 1).split('&')
+          arr.forEach(item => {
+            const temp = item.split('=')
+            json[temp[0]] = temp[1]
+          })
+          return json
+        }
+        return {}
+      },
+      isEmpty(val) {
+        if (typeof val === 'number') val = val + ''
+        return val === undefined || val === null || val.trim() === ''
+      },
+      getOpenId() {
+        const param = this.getUrlParam(window.location.href)
+        const planId = param.state ? param.state : ''
+        if (param.code) {//获取code后，通过code去拿openid
+          axios({
+            baseURL,
+            url: '/common/qr/getGzhWeChatOpenId',
+            method: 'get',
+            params: {
+              code: param.code,
+              state: 'A',//A.单色 B.优鸽
+            }
+          }).then(res => {
+            if (res.status == 200 && res.data.code == 200 && res.data.data) {
+              let data = JSON.parse(res.data.data)
+              this.openId = data.openid
+              this.getClassInfo()
+            } else {
+              this.toast('openid获取失败')
+            }
+          })
+        } else {//跳转微信授权页获取code
+          const URL = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${DS_APPID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${SCOPE}&state=${planId}#wechat_redirect`
+          window.location.href = URL
+        }
+      },
+      getClassInfo() {
+        const param = this.getUrlParam(window.location.href)
+        const planId = param.state ? param.state : ''
+        axios({
+          baseURL,
+          url: '/common/classPlan/checkstudentFeedback',
+          method: 'get',
+          params: {
+            planId,
+            userId: this.openId
+          }
+        }).then(res => {
+          if (res.status == 200) {
+            let data = res.data
+            if (data.code == 200 && data.data) {
+              const { classId, teacherName, principal, deptId, danceId, startDate, endDate } = data.data
+              this.form.classId = classId
+              this.form.teacherName = teacherName
+              this.form.principal = principal
+              this.form.deptId = deptId
+              this.form.danceId = danceId
+              this.form.startDate = startDate ? startDate.split(' ')[0] : ''
+              this.form.endDate = endDate ? endDate.split(' ')[0] : ''
+              this.emptyText = null
+            } else {
+              this.emptyText = data.msg
+            }
+          }
+        })
+      },
+      getOptions() {
+        axios({
+          baseURL,
+          url: '/common/classPlan/listDept',
+          method: 'get'
+        })
+          .then(res => {
+            if (res.status == 200) {
+              let data = res.data
+              if (data.code == 200 && data.data) {
+                this.deptList = data.data
+              } else {
+                this.toast(data.msg)
+              }
+            }
+          })
+
+        axios({
+          baseURL,
+          url: '/common/classPlan/listEduDance',
+          method: 'get'
+        })
+          .then(res => {
+            if (res.status == 200) {
+              let data = res.data
+              if (data.code == 200 && data.data) {
+                this.danceList = data.data
+              } else {
+                this.toast(data.msg)
+              }
+            }
+          })
+      },
+      learningPurposeClick(item) {
+        let index = this.form.learningGoals.findIndex(d => d === item.value)
+        if (index >= 0) {
+          this.form.learningGoals.splice(index, 1)
+        } else {
+          this.form.learningGoals.push(item.value)
+        }
+      },
+      submit() {
+        if (this.loading) return
+        if (this.isEmpty(this.form.studentName)) {
+          return this.toast('请输入学员姓名')
+        }
+        if (this.isEmpty(this.form.teacherName)) {
+          return this.toast('请输入老师姓名')
+        }
+        if (this.isEmpty(this.form.instructor)) {
+          return this.toast('请输入班级辅导员')
+        }
+        if (this.isEmpty(this.form.principal)) {
+          return this.toast('请输入教研组负责人')
+        }
+        if (this.isEmpty(this.form.deptId)) {
+          return this.toast('请选择上课分馆')
+        }
+        if (this.isEmpty(this.form.danceId)) {
+          return this.toast('请选择所学课程')
+        }
+        if (this.isEmpty(this.form.periods)) {
+          return this.toast('请输入教练班期数')
+        }
+        if (this.isEmpty(this.form.startDate)) {
+          return this.toast('请选择开班日期')
+        }
+        if (this.isEmpty(this.form.endDate)) {
+          return this.toast('请选择结业日期')
+        }
+        if (this.form.score1 == 0) {
+          return this.toast('请给问题1打分')
+        }
+        if (this.form.score2 == 0) {
+          return this.toast('请给问题2打分')
+        }
+        if (this.form.score3 == 0) {
+          return this.toast('请给问题3打分')
+        }
+        if (this.form.score4 == 0) {
+          return this.toast('请给问题4打分')
+        }
+        if (this.form.score5 == 0) {
+          return this.toast('请给问题5打分')
+        }
+        if (this.form.score6 == 0) {
+          return this.toast('请给问题6打分')
+        }
+        if (this.form.score7 == 0) {
+          return this.toast('请给问题7打分')
+        }
+        if (this.form.score8 == 0) {
+          return this.toast('请给问题8打分')
+        }
+        if (this.isEmpty(this.form.deductMarksCause)) {
+          return this.toast('请输入扣分的具体原因')
+        }
+        if (this.form.learningGoals.length === 0) {
+          return this.toast('请输入学习教练班的目的')
+        }
+        if (this.isEmpty(this.form.otherInstitutions)) {
+          return this.toast('请输入您选择单色之前还考虑过哪些其他的机构')
+        }
+        if (this.isEmpty(this.form.chooseDanseCause)) {
+          return this.toast('请输入为什么对比之后还是选择来单色学习')
+        }
+        if (this.form.possibility == 0) {
+          return this.toast('请选择您有多大可能性推荐您的朋友来学习')
+        }
+        if (this.form.isWilling === null || this.form.isWilling === undefined) {
+          return this.toast('请选择您是否愿意推广单色给您的朋友')
+        }
+        if (this.isEmpty(this.form.reason)) {
+          return this.toast('请选择您是否愿意推广的理由')
+        }
+        if (this.isEmpty(this.form.serviceModule)) {
+          return this.toast('请输入店面服务模块，你想说的话')
+        }
+        if (this.isEmpty(this.form.experienceModule)) {
+          return this.toast('请输入教学体验模块，你想说的话')
+        }
+        if (this.isEmpty(this.form.expectation)) {
+          return this.toast('请输入你对单色有什么样的期待')
+        }
+
+        let params = JSON.parse(JSON.stringify(this.form))
+        params.userId = this.openId
+        params.learningGoals = params.learningGoals.join(',')
+        this.loading = true
+        axios({
+          baseURL,
+          url: '/common/classPlan/saveStudentFeedback',
+          method: 'post',
+          params
+        })
+          .then(res => {
+            if (res.status == 200) {
+              let data = res.data
+              if (data.code == 200 && data.data) {
+                this.toast('提交成功')
+              } else {
+                this.toast(data.msg)
+              }
+            }
+          })
+          .finally(() => {
+            this.getClassInfo()
+            this.loading = false
+          })
+      }
+    }
+  })
+</script>
+</body>
