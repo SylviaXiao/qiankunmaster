@@ -16,4 +16,4 @@ export const setDocumentTitle = function (title) {
   }
 }
 
-export const domTitle = 'INDEX_DEFAULT'
+export const domTitle = 'QIANKUNMASTER'
