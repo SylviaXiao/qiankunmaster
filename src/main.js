@@ -12,8 +12,7 @@ import Print from 'vue-print-nb'
 import globalVar from '@/utils/GlobalVar'
 import BigNumber from 'bignumber.js'
 import perm from '@/core/directives/perm'
-// import  VConsole  from  'vconsole'
-// const vConsole = new VConsole() //注意
+import { registerMicroApps, start ,initGlobalState} from 'qiankun';
 
 Object.keys(filters).forEach(k => Vue.filter(k, filters[k]))
 
@@ -103,7 +102,58 @@ if (process.env.NODE_ENV === 'development') {
     window.fill = new fillForm.default()
   })
 }
-
+//注册微应用
+let propsData = {
+  sex: '男',
+  age: 18,
+  userName: '小东'
+}
+const actions = initGlobalState(propsData)
+// 主项目项目监听和修改(在项目中任何需要监听的地方进行监听)
+actions.onGlobalStateChange((state, prev) => {
+  // state: 变更后的状态; prev 变更前的状态
+  console.log('改变前的值 ', prev)
+  console.log('改变后的值 ', state)
+})
+// 将actions对象绑到Vue原型上，为了项目中其他地方使用方便
+Vue.prototype.$actions = actions
+const apps = [
+  {
+    name: 'vueApp1', // 应用的名字
+    entry: '//localhost:4447', // 默认会加载这个html 解析里面的js 动态的执行 （子应用必须支持跨域）fetch
+    container: '#qiankun', // 容器名
+    activeRule: '/workflow/test', // 激活的路径
+    props: propsData
+  },
+  {
+    name: 'vueApp2', // 应用的名字
+    entry: '//localhost:8081', // 默认会加载这个html 解析里面的js 动态的执行 （子应用必须支持跨域）fetch
+    container: '#qiankun', // 容器名
+    activeRule: '/erp/qiankun/vue', // 激活的路径
+    props: propsData
+  }
+]
+registerMicroApps(apps, {
+  beforeLoad: [
+    app => {
+      console.log('=======>before load', app)
+      return Promise.resolve()
+    }
+  ],
+  beforeMount: [
+    app => {
+      console.log('========>before mount', app)
+      return Promise.resolve()
+    }
+  ],
+  afterUnmount: [
+    app => {
+      console.log('========>after unload', app)
+      return Promise.resolve()
+    }
+  ]
+}) // start up micro app
+start({ prefetch: true })
 import './public-path'
 let instance = null
 function render(props = {}) {

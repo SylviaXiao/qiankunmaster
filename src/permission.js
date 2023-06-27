@@ -13,6 +13,7 @@ const loginRoutePath = '/user/login'
 
 const whiteList = ['login', 'forgetPsw', 'registerResult', 'css', 'certficateApply','studentRecordApply','studentRecordApplyResult'] // no redirect whitelist
 router.beforeEach((to, from, next) => {
+  console.log('*********************to',to.path)
   NProgress.start() // start progress bar
   to.meta && (typeof to.meta.title !== 'undefined' && setDocumentTitle(`${to.meta.title} - ${domTitle}`))
   if (Vue.ls.get(ACCESS_TOKEN)) {

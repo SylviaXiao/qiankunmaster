@@ -43,6 +43,7 @@
     "moment": "^2.24.0",
     "nprogress": "^0.2.0",
     "print-js": "^1.5.0",
+    "qiankun": "^2.10.9",
     "socket.io-client": "^4.5.3",
     "viser-vue": "^2.3.3",
     "vue": "^2.5.22",

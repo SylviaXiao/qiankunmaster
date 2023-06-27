@@ -40,6 +40,35 @@ export const asyncRouterMap = [
         ]
       },
       {
+        path: '/qiankun',
+        name: 'qiankun',
+        component: RouteView,
+        meta: { title: '微应用', icon: 'book' },
+        redirect: '/qiankun/qiankun',
+        children: [
+          {
+            path: '/qiankun/workflow',
+            name: 'qiankunqiankun',
+            component: RouteView,
+            meta: { title: '微应用', icon: 'caret-down' },
+            children: [
+              {
+                path: `/workflow/test`,
+                name: 'qiankunbase1',
+                component: RouteView,
+                meta: { title: '子应用1', keepAlive: true, isMircro: true }
+              },
+              {
+                path: `/erp/qiankun/vue`,
+                name: 'qiankunbase2',
+                component: RouteView,
+                meta: { title: '子应用2', keepAlive: true, isMircro: true }
+              }
+            ]
+          }
+        ]
+      },
+      {
         path: '/myVerify',
         name: 'myVerify',
         component: RouteView,
@@ -851,13 +880,13 @@ export const asyncRouterMap = [
               },
               {
                 path: '/education/childrenPerformanceReportNew',
-                name: 'childrenPerformanceReport',
+                name: 'childrenPerformanceReportNew',
                 component: () => import('@/views/education/childrenPerformanceReportNew'),
                 meta: { title: '少儿绩效报表', keepAlive: true, permission: ['education:children-report:view'] }
               },
               {
                 path: '/education/childrenPerformanceReportDetailNew/:id/:title/:type',
-                name: 'childrenPerformanceReportDetail',
+                name: 'childrenPerformanceReportDetailNew',
                 component: () => import('@/views/education/childrenPerformanceReportDetailNew'),
                 meta: { title: '少儿绩效报表详情', keepAlive: false, hidden: true, permission: ['education:children-report:viewgrade'] }
               },
