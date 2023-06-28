@@ -53,10 +53,16 @@ export const asyncRouterMap = [
             meta: { title: '微应用', icon: 'caret-down' },
             children: [
               {
-                path: `/workflow/test`,
+                path: `/vueApp1/test`,
                 name: 'qiankunbase1',
                 component: RouteView,
                 meta: { title: '子应用1', keepAlive: true, isMircro: true }
+              },
+              {
+                path: `/vueApp1/approvalList`,
+                name: 'approvalList',
+                component: RouteView,
+                meta: { title: '流程配置', keepAlive: true, isMircro: true }
               },
               {
                 path: `/erp/qiankun/vue`,
